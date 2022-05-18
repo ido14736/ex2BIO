@@ -55,8 +55,38 @@ def validate_board_state(board):
     return valid
 
 # by a position - returning a list of all the valid values for this position by the board state
+def get_number_of_duplicates(board):
+    num_of_duplicates = 0
+    for i in range(len(board)):
+        for current_num in range(5):
+            current_count = 0
+            for row_val in board[i, :]:
+          #      print(row_val, " ", current_num+1)
+                if row_val == current_num+1:
+                    current_count += 1
+            if current_count > 0:
+                current_count -= 1
+          #  print(current_count)
+            num_of_duplicates += current_count
+
+            current_count = 0
+            for col_val in board[:, i]:
+               # print(col_val, " ", current_num + 1)
+                if col_val == current_num+1:
+                    current_count += 1
+            if current_count > 0:
+                current_count -= 1
+           # print(current_count)
+            num_of_duplicates += current_count
+    return num_of_duplicates
+    #return np.setdiff1d(np.array(range(1, len(board)+1)), np.unique(np.concatenate((board[i, :], board[:, j]))))
+
+
+# by a position - returning a list of all the valid values for this position by the board state
 def get_valid_numbers_for_position(board, i, j):
     return np.setdiff1d(np.array(range(1, len(board)+1)), np.unique(np.concatenate((board[i, :], board[:, j]))))
+
+
 
 #initializing the Futoshiki board - adding random values to the empty positions
 def initialize_board(size, given_numbers):
@@ -69,16 +99,25 @@ def initialize_board(size, given_numbers):
             for j in range(size):
                 if board[i,j] == 0:
                     # randomize from the valid values
-                    choice_options = get_valid_numbers_for_position(board, i, j)
-                    if np.array_equal(choice_options, []):
-                        return np.array([-1])
-                    board[i,j] = random.choice(choice_options)
+                    #choice_options = get_valid_numbers_for_position(board, i, j)
+                    #if np.array_equal(choice_options, []):
+                     #   return np.array([-1])
+                    board[i,j] = random.choice(range(1, len(board)+1))
 
     else:
         print("Invalid given numbers positions(there is more than one instance of the same number in the same row or column).")
         return np.array([])
 
     return board
+
+def fitness_to_board(board, greater_than_signs_positions):
+    #TODO: iterate on all lines and columns on the board and count duplicates(func exists - get_number_of_duplicates).
+    #TODO: then iterate on 'greater_than_signs_positions' and count how many bad signs are there
+    print()
+
+def fix_board(board, given_numbers):
+    for num in given_numbers:
+        board[num[0][0], num[0][1]] = num[1]
 
 #main function
 if __name__ == '__main__':
@@ -92,14 +131,32 @@ if __name__ == '__main__':
             given_numbers = result[1]
             greater_than_signs_positions = result[2]
 
+            print(given_numbers)
+            print(greater_than_signs_positions)
+
+            #TODO: loop 100 times to create 100 boards
             # creating a board until a valid one is created
             board = initialize_board(size, given_numbers)
-            while np.array_equal(board, [-1]):
-                board = initialize_board(size, given_numbers)
+
+
+            #TODO: the algo loop - to number of iterations that we choose
+            #TODO: calculate the fitness of every board
+
+            #TODO: keep the representation of the boards as it is
+            #TODO: the algo itself - create the new generation:
+            #TODO: CHOOSE THE BOARDS WITH THE BEST FITNESS TO THE ALGO PROCESS
+            #TODO: 1.SAVE THE BEST BOARD/TWO BOARDS 2.CROSSOVERS 3.Mutations 4.FIX BOARD TO EVERY BOARD
+
+            #TODO: the early convergence - if the fittness avg was simillar in the last few iterations(generations) - add more mutations
+
+
+            #while np.array_equal(board, [-1]):
+            #board = initialize_board(size, given_numbers)
 
             # if the given numbers are invalid
-            if not np.array_equal(board, []):
-                print(greater_than_signs_positions)
-                print("final board:")
-                for row in board:
-                    print(row)
+            #if not np.array_equal(board, []):
+            #print(greater_than_signs_positions)
+            #print("final board:")
+            #for row in board:
+            #    print(row)
+            #print(get_number_of_duplicates(board))
