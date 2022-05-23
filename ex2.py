@@ -1,58 +1,86 @@
-import sys
-import numpy as np
 import random
+import sys
 
-# returning the board size, the given numbers, the "greater that" signs from the input file
-# and checking if the input values are valid
-def handle_input_file(input_file_path):
-    input_file = open(input_file_path, 'r')
-    lines = input_file.readlines()
+import numpy as np
 
-    # initializing the parameters by the input of the user
-    size = int(lines[0])
-    if not(size >= 4 and size <= 9):
-        print("Please choose size between 4 and 9.")
-        return -1
-    given_numbers_num = int(lines[1])
-    if not(given_numbers_num >= 0 and given_numbers_num <= (size*size)):
-        print("Invalid number of numbers given.")
-        return -1
-    given_numbers = []
-    for i in range(2, given_numbers_num + 2):
-        splited_line = lines[i].split()
-        if int(splited_line[0]) >= 1 and int(splited_line[1]) >= 1 and int(splited_line[2]) >= 1 and int(splited_line[0]) <= size and int(splited_line[1]) <= size and int(splited_line[2]) <= size:
-            given_numbers.append([[int(splited_line[0]) - 1, int(splited_line[1]) - 1], int(splited_line[2])])
-        else:
+
+# TODO: delete all the lines "print(...)" from the code
+
+# TODO: write again without duplicate code?
+def parse_line(line, matrix_size, values_num):
+    splited_line = line.split()
+    if (values_num == 3):
+        row = int(splited_line[0])
+        col = int(splited_line[1])
+        value = int(splited_line[2])
+
+        # validates input
+        if not (row >= 1 and row <= matrix_size) and (col >= 1 and col <= matrix_size) and (
+                value >= 1 and value <= matrix_size):
             print("Invalid given number or given number position found.")
             return -1
 
-    greater_than_signs_num = int(lines[2 + given_numbers_num])
-    if not (greater_than_signs_num >= 0 and greater_than_signs_num <= ((size-1) * (size-1))):
-        print("Invalid number of 'greater than' signs given.")
-        return -1
-    greater_than_signes_positions = []
-    for i in range(3 + given_numbers_num, 3 + given_numbers_num + greater_than_signs_num):
-        splited_line = lines[i].split()
-        if int(splited_line[0]) >= 1 and int(splited_line[1]) >= 1 and int(splited_line[2]) >= 1 and int(splited_line[3]) >= 1 and int(splited_line[0]) <= size and int(splited_line[1]) <= size and int(splited_line[2]) <= size and int(splited_line[3]) <= size:
-            if (int(splited_line[0]) == int(splited_line[2]) and abs(int(splited_line[1]) - int(splited_line[3])) == 1) or (int(splited_line[1]) == int(splited_line[3]) and abs(int(splited_line[0]) - int(splited_line[2])) == 1):
-                greater_than_signes_positions.append([[int(splited_line[0]) - 1, int(splited_line[1]) - 1], [int(splited_line[2]) - 1, int(splited_line[3]) - 1]])
-            else:
-                print("Invalid 'greater than' sign positions pair found. Please choose two positions that are near each other(but not diagonal).")
-                return -1
+        return row - 1, col - 1, value
+    else:
+        row_index1 = int(splited_line[0])
+        col_index1 = int(splited_line[1])
+        row_index2 = int(splited_line[2])
+        col_index2 = int(splited_line[3])
 
-        else:
-            print("Invalid 'greater than' sign position found.")
+        # validates input
+        if not (row_index1 >= 1 and row_index1 <= matrix_size) and (col_index1 >= 1 and col_index1 <= matrix_size) and (
+                row_index2 >= 1 and row_index2 <= matrix_size) and (col_index2 >= 1 and col_index2 <= matrix_size):
+            print("Invalid given number or given number position found.")
             return -1
 
-    return [size, given_numbers, greater_than_signes_positions]
+        return row_index1 - 1, col_index1 - 1, row_index2 - 1, col_index2 - 1
+
+
+def parse_input(input_file_path):
+    input_file = open(input_file_path, 'r')
+    lines = input_file.readlines()
+
+    # The size of the matrix
+    matrix_size = int(lines[0])
+
+    # validates input
+    if not (matrix_size >= 4 and matrix_size <= 9):
+        print("Please choose size between 4 and 9.")
+        return -1
+
+    # Number of given digits (0 if the matrix is given empty)
+    given_digits_num = int(lines[1])
+
+    # validates input
+    if not (given_digits_num >= 0 and given_digits_num <= (matrix_size * matrix_size)):
+        print("Invalid number of numbers given.")
+        return -1
+
+    given_digits = []
+    for i in range(2, given_digits_num + 2):
+        row, col, value = parse_line(lines[i], matrix_size, 3)
+        given_digits.append([[row, col], value])
+
+    # The number of “greater than” signs
+    greater_than_num = int(lines[given_digits_num + 2])
+
+    greater_than_signes_positions = []
+    for j in range(given_digits_num + 3, given_digits_num + 3 + greater_than_num):
+        row_index1, col_index1, row_index2, col_index2 = parse_line(lines[j], matrix_size, 4)
+        greater_than_signes_positions.append([[row_index1, col_index1], [row_index2, col_index2]])
+
+    return [matrix_size, given_digits, greater_than_signes_positions, greater_than_num]
+
 
 # checks the state of the board
 def validate_board_state(board):
     valid = True
     for i in range(len(board)):
-        if len(board[i,:][board[i,:]!=0]) != len(set(board[i,:][board[i,:]!=0])) or len(board[:,i][board[:,i]!=0]) != len(set(board[:,i][board[:,i]!=0])):
+        if len(board[i, :][board[i, :] != 0]) != len(set(board[i, :][board[i, :] != 0])) or len(
+                board[:, i][board[:, i] != 0]) != len(set(board[:, i][board[:, i] != 0])):
             valid = False
     return valid
+
 
 # by a position - returning a list of all the valid values for this position by the board state
 def get_number_of_duplicates(board):
@@ -61,34 +89,33 @@ def get_number_of_duplicates(board):
         for current_num in range(5):
             current_count = 0
             for row_val in board[i, :]:
-          #      print(row_val, " ", current_num+1)
-                if row_val == current_num+1:
+                #      print(row_val, " ", current_num+1)
+                if row_val == current_num + 1:
                     current_count += 1
             if current_count > 0:
                 current_count -= 1
-          #  print(current_count)
+            #  print(current_count)
             num_of_duplicates += current_count
 
             current_count = 0
             for col_val in board[:, i]:
-               # print(col_val, " ", current_num + 1)
-                if col_val == current_num+1:
+                # print(col_val, " ", current_num + 1)
+                if col_val == current_num + 1:
                     current_count += 1
             if current_count > 0:
                 current_count -= 1
-           # print(current_count)
+            # print(current_count)
             num_of_duplicates += current_count
     return num_of_duplicates
-    #return np.setdiff1d(np.array(range(1, len(board)+1)), np.unique(np.concatenate((board[i, :], board[:, j]))))
+    # return np.setdiff1d(np.array(range(1, len(board)+1)), np.unique(np.concatenate((board[i, :], board[:, j]))))
 
 
 # by a position - returning a list of all the valid values for this position by the board state
 def get_valid_numbers_for_position(board, i, j):
-    return np.setdiff1d(np.array(range(1, len(board)+1)), np.unique(np.concatenate((board[i, :], board[:, j]))))
+    return np.setdiff1d(np.array(range(1, len(board) + 1)), np.unique(np.concatenate((board[i, :], board[:, j]))))
 
 
-
-#initializing the Futoshiki board - adding random values to the empty positions
+# initializing the Futoshiki board - adding random values to the empty positions
 def initialize_board(size, given_numbers):
     # Create an empty 2D numpy array by the size
     board = np.full([size, size], 0)
@@ -97,66 +124,129 @@ def initialize_board(size, given_numbers):
     if validate_board_state(board):
         for i in range(size):
             for j in range(size):
-                if board[i,j] == 0:
+                if board[i, j] == 0:
                     # randomize from the valid values
-                    #choice_options = get_valid_numbers_for_position(board, i, j)
-                    #if np.array_equal(choice_options, []):
-                     #   return np.array([-1])
-                    board[i,j] = random.choice(range(1, len(board)+1))
+                    # choice_options = get_valid_numbers_for_position(board, i, j)
+                    # if np.array_equal(choice_options, []):
+                    #   return np.array([-1])
+                    board[i, j] = random.choice(range(1, len(board) + 1))
 
     else:
-        print("Invalid given numbers positions(there is more than one instance of the same number in the same row or column).")
+        print(
+            "Invalid given numbers positions(there is more than one instance of the same number in the same row or column).")
         return np.array([])
 
     return board
 
-def fitness_to_board(board, greater_than_signs_positions):
-    #TODO: iterate on all lines and columns on the board and count duplicates(func exists - get_number_of_duplicates).
-    #TODO: then iterate on 'greater_than_signs_positions' and count how many bad signs are there
-    print()
+
+def fitness_to_board(board, greater_than_signs_positions, greater_than_num):
+    # count how many duplicate values there are in each col and row
+    duplicates = get_number_of_duplicates(board)
+    max_duplicates = 2 * (size * (size - 1))
+
+    # iterate on 'greater_than_signs_positions' and count how many bad signs are there
+    counter = 0
+    for num in greater_than_signs_positions:
+        # print(board[num[0][0], num[0][1]], " > ", board[num[1][0], num[1][1]])
+        # TODO: shoud be >= or >?
+        if not (board[num[0][0], num[0][1]] > board[num[1][0], num[1][1]]):
+            counter += 1
+
+    # calculate the grade of each evaluation parameter
+    duplicates_grade = (duplicates / max_duplicates)
+    greater_than_grade = (counter / greater_than_num)
+
+    # TODO: change the % of each grade in order to get better results
+    # calculates the final grade by giving each evaluation parameter different weight
+    final_grade = (0.3 * duplicates_grade) + (0.7 * greater_than_grade)
+
+    return final_grade
+
 
 def fix_board(board, given_numbers):
     for num in given_numbers:
         board[num[0][0], num[0][1]] = num[1]
 
-#main function
+
+def combine_boards(size, board1, board2):
+    new_board = np.full([size, size], 0)
+    for i in range(size):
+        for j in range(size):
+            board_num = random.randint(1, 2)
+            if (board_num == 1):
+                new_board[i, j] = board1[i, j]
+            else:
+                new_board[i, j] = board2[i, j]
+
+    return new_board
+
+
+def create_mutation(size, board, given_numbers):
+    new_board = np.full([size, size], 0)
+    for i in range(size):
+        for j in range(size):
+            board_num = random.randint(1, 2)
+            if (board_num == 1):
+                new_board[i, j] = board[i, j]
+            else:
+                new_board[i, j] = random.randint(1, size)
+
+    fix_board(new_board, given_numbers)
+
+    return new_board
+
+#remove 10% of the population
+def create_generation(population):
+    new_generation = []
+    #sort the array according to the grades of each board
+    population.sort(key=lambda x:x[1])
+    population_size = int(0.9*len(population))
+    for i in range(population_size):
+        new_generation.append(population[i])
+        #print("Board Number:", i, "\nGrade:", new_generation[i][1])
+        #print(new_generation[i][0], "\n")
+
+    return new_generation
+
+
+# main function
 if __name__ == '__main__':
-    if len(sys.argv) < 2:
+
+    # validates input
+    if len(sys.argv) != 2:
         print("Not Enough Parameters!")
     else:
         input_file_path = sys.argv[1]
-        result = handle_input_file(input_file_path)
-        if result != -1:
-            size = result[0]
-            given_numbers = result[1]
-            greater_than_signs_positions = result[2]
 
-            print(given_numbers)
-            print(greater_than_signs_positions)
+        # get the data from the input file
+        data = parse_input(input_file_path)
+        if data != -1:
+            size = data[0]
+            given_numbers = data[1]
+            greater_than_signs_positions = data[2]
+            greater_than_num = data[3]
 
-            #TODO: loop 100 times to create 100 boards
-            # creating a board until a valid one is created
+        # TODO: check if need to change the number
+        population_size = 100
+
+        # create the population
+        population = []
+        for i in range(population_size):
             board = initialize_board(size, given_numbers)
+            # initialize all boards with fitness grade
+            board_grade = fitness_to_board(board, greater_than_signs_positions, greater_than_num)
+            population.append([board, board_grade])
+            #print("Board Number:", i, "\nGrade:", population[i][1])
+            #print(population[i][0], "\n")
 
+        # TODO: change the number of iterations
+        iter_num = 10
 
-            #TODO: the algo loop - to number of iterations that we choose
-            #TODO: calculate the fitness of every board
-
-            #TODO: keep the representation of the boards as it is
-            #TODO: the algo itself - create the new generation:
-            #TODO: CHOOSE THE BOARDS WITH THE BEST FITNESS TO THE ALGO PROCESS
-            #TODO: 1.SAVE THE BEST BOARD/TWO BOARDS 2.CROSSOVERS 3.Mutations 4.FIX BOARD TO EVERY BOARD
-
-            #TODO: the early convergence - if the fittness avg was simillar in the last few iterations(generations) - add more mutations
-
-
-            #while np.array_equal(board, [-1]):
-            #board = initialize_board(size, given_numbers)
-
-            # if the given numbers are invalid
-            #if not np.array_equal(board, []):
-            #print(greater_than_signs_positions)
-            #print("final board:")
-            #for row in board:
-            #    print(row)
-            #print(get_number_of_duplicates(board))
+        for iter in range(iter_num):
+            for i in range(len(population)):
+                # create the new generation
+                gen = create_generation(population)
+                
+                #TODO: choose number of board and do CROSSOVERS and Mutations
+                # TODO: the early convergence - if the fittness avg was simillar in the last few iterations(generations) - add more mutations
+                print(gen)
