@@ -272,4 +272,3 @@ if __name__ == '__main__':
 
             print("Best Grade", population[0][1])
             print("Best Board:\n", population[0][0], "\n")
-            # TODO: the early convergence - if the fittness avg was simillar in the last few iterations(generations) - add more mutations
