@@ -254,24 +254,22 @@ if __name__ == '__main__':
             # CROSSOVERS
             crossover_num = int(0.4 * len(population))
             for num in range(crossover_num):
-                board1_num = random.randint(0, len(population)-1)
-                board2_num = random.randint(0, len(population)-1)
+                board1_num = random.randint(0, len(population) - 1)
+                board2_num = random.randint(0, len(population) - 1)
                 new_board = combine_boards(size, population[board1_num][0], population[board2_num][0])
                 new_board_grade = fitness_to_board(new_board, greater_than_signs_positions, greater_than_num)
                 population.append([new_board, new_board_grade])
 
-
             # Mutations
             mutations_num = int(0.15 * len(population))
             for num in range(mutations_num):
-                board_num = random.randint(0, len(population)-1)
+                board_num = random.randint(0, len(population) - 1)
                 mutation_board = create_mutation(size, population[board_num][0], given_numbers)
                 mutation_grade = fitness_to_board(new_board, greater_than_signs_positions, greater_than_num)
                 population.append([mutation_board, mutation_grade])
 
             # New Generation
             population = create_generation(population)
-
 
             print("Best Grade", population[0][1], "\n")
             # TODO: the early convergence - if the fittness avg was simillar in the last few iterations(generations) - add more mutations
