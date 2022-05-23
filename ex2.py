@@ -83,10 +83,10 @@ def validate_board_state(board):
 
 
 # by a position - returning a list of all the valid values for this position by the board state
-def get_number_of_duplicates(board):
+def get_number_of_duplicates(board, size):
     num_of_duplicates = 0
     for i in range(len(board)):
-        for current_num in range(5):
+        for current_num in range(size):
             current_count = 0
             for row_val in board[i, :]:
                 #      print(row_val, " ", current_num+1)
@@ -139,16 +139,15 @@ def initialize_board(size, given_numbers):
     return board
 
 
-def fitness_to_board(board, greater_than_signs_positions, greater_than_num):
+def fitness_to_board(board, greater_than_signs_positions, greater_than_num, size):
     # count how many duplicate values there are in each col and row
-    duplicates = get_number_of_duplicates(board)
+    duplicates = get_number_of_duplicates(board, size)
     max_duplicates = 2 * (size * (size - 1))
 
     # iterate on 'greater_than_signs_positions' and count how many bad signs are there
     counter = 0
     for num in greater_than_signs_positions:
         # print(board[num[0][0], num[0][1]], " > ", board[num[1][0], num[1][1]])
-        # TODO: shoud be >= or >?
         if not (board[num[0][0], num[0][1]] > board[num[1][0], num[1][1]]):
             counter += 1
 
@@ -158,7 +157,7 @@ def fitness_to_board(board, greater_than_signs_positions, greater_than_num):
 
     # TODO: change the % of each grade in order to get better results
     # calculates the final grade by giving each evaluation parameter different weight
-    final_grade = (0.3 * duplicates_grade) + (0.7 * greater_than_grade)
+    final_grade = (0.6 * duplicates_grade) + (0.4 * greater_than_grade)
 
     return final_grade
 
@@ -201,7 +200,7 @@ def create_generation(population):
     new_generation = []
     # sort the array according to the grades of each board
     population.sort(key=lambda x: x[1])
-    population_size = int(0.60 * len(population))
+    population_size = int(0.57 * len(population))
     for i in range(population_size):
         new_generation.append(population[i])
         # print("Board Number:", i, "\nGrade:", new_generation[i][1])
@@ -235,7 +234,7 @@ if __name__ == '__main__':
         for i in range(population_size):
             board = initialize_board(size, given_numbers)
             # initialize all boards with fitness grade
-            board_grade = fitness_to_board(board, greater_than_signs_positions, greater_than_num)
+            board_grade = fitness_to_board(board, greater_than_signs_positions, greater_than_num, size)
             population.append([board, board_grade])
             # print("Board Number:", i, "\nGrade:", population[i][1])
             # print(population[i][0], "\n")
@@ -252,24 +251,25 @@ if __name__ == '__main__':
             print("Population size:", len(population))
 
             # CROSSOVERS
-            crossover_num = int(0.4 * len(population))
+            crossover_num = int(0.40 * len(population))
             for num in range(crossover_num):
                 board1_num = random.randint(0, len(population) - 1)
                 board2_num = random.randint(0, len(population) - 1)
                 new_board = combine_boards(size, population[board1_num][0], population[board2_num][0])
-                new_board_grade = fitness_to_board(new_board, greater_than_signs_positions, greater_than_num)
+                new_board_grade = fitness_to_board(new_board, greater_than_signs_positions, greater_than_num, size)
                 population.append([new_board, new_board_grade])
 
             # Mutations
-            mutations_num = int(0.15 * len(population))
+            mutations_num = int(0.25 * len(population))
             for num in range(mutations_num):
                 board_num = random.randint(0, len(population) - 1)
                 mutation_board = create_mutation(size, population[board_num][0], given_numbers)
-                mutation_grade = fitness_to_board(new_board, greater_than_signs_positions, greater_than_num)
+                mutation_grade = fitness_to_board(new_board, greater_than_signs_positions, greater_than_num, size)
                 population.append([mutation_board, mutation_grade])
 
             # New Generation
             population = create_generation(population)
 
-            print("Best Grade", population[0][1], "\n")
+            print("Best Grade", population[0][1])
+            print("Best Board:\n", population[0][0], "\n")
             # TODO: the early convergence - if the fittness avg was simillar in the last few iterations(generations) - add more mutations
