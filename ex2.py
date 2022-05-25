@@ -18,7 +18,7 @@ def parse_line(line, matrix_size, values_num):
         if not ((row >= 1 and row <= matrix_size) and (col >= 1 and col <= matrix_size) and (
                 value >= 1 and value <= matrix_size)):
             print("Invalid given number or given number position found.")
-            return -1
+            return -1, -1, -1
 
         return row - 1, col - 1, value
 
@@ -32,8 +32,8 @@ def parse_line(line, matrix_size, values_num):
         # validates input
         if not ((row_index1 >= 1 and row_index1 <= matrix_size) and (col_index1 >= 1 and col_index1 <= matrix_size) and (
                 row_index2 >= 1 and row_index2 <= matrix_size) and (col_index2 >= 1 and col_index2 <= matrix_size)):
-            print("Invalid given number or given number position found.")
-            return -1
+            print("Invalid greater than sign found.")
+            return -1, -1, -1, -1
 
         return row_index1 - 1, col_index1 - 1, row_index2 - 1, col_index2 - 1
 
@@ -63,7 +63,10 @@ def parse_input(input_file_path):
     given_digits = []
     for i in range(2, given_digits_num + 2):
         row, col, value = parse_line(lines[i], matrix_size, 3)
-        given_digits.append([[row, col], value])
+        if row != -1 and col != -1 and value != -1:
+            given_digits.append([[row, col], value])
+        else:
+            return -1
 
     # The number of “greater than” signs
     greater_than_num = int(lines[given_digits_num + 2])
@@ -72,7 +75,10 @@ def parse_input(input_file_path):
     greater_than_signes_positions = []
     for j in range(given_digits_num + 3, given_digits_num + 3 + greater_than_num):
         row_index1, col_index1, row_index2, col_index2 = parse_line(lines[j], matrix_size, 4)
-        greater_than_signes_positions.append([[row_index1, col_index1], [row_index2, col_index2]])
+        if row_index1 != -1 and col_index1 != -1 and row_index2 != -1 and col_index2 != -1:
+            greater_than_signes_positions.append([[row_index1, col_index1], [row_index2, col_index2]])
+        else:
+            return -1
 
     return [matrix_size, given_digits, greater_than_signes_positions, greater_than_num]
 
@@ -106,7 +112,6 @@ def get_number_of_duplicates_by_value_and_position(board, val, i, j):
     # checking for duplicates in column j
     current_count = 0
     for col_val in board[:, j]:
-        # print(col_val, " ", current_num + 1)
         if col_val == val:
             current_count += 1
     if current_count > 0:
@@ -341,7 +346,7 @@ if __name__ == '__main__':
                 lemark_population.append([optimized_board, optimized_board_grade])
                 lemark_grades.append(optimized_board_grade)
 
-            mutations_percantage = 0.1
+            mutations_percantage = 0.095
             mutations_num = int(((population_size -2) * ((size*size) - len(given_numbers))) * mutations_percantage)
 
             # creating a list with the possible positions for mutations
@@ -368,6 +373,9 @@ if __name__ == '__main__':
 
             iter_num = 200
 
+            min_avg_count_percantage = 0.4
+            current_min_avg = 1
+            current_min_avg_count = int(iter_num * min_avg_count_percantage)
             print("The original algorithm running")
             # the main loop for the original algorithm
             for iter in range(iter_num):
@@ -375,6 +383,16 @@ if __name__ == '__main__':
                 grades_avg = sum(grades)/len(grades)
                 current_best_board_grade = population[grades.index(min(grades))][1]
                 print("iter number:", iter, "best grade:", current_best_board_grade, "avg:", grades_avg)
+
+                # checking for early convergence
+                if grades_avg < current_min_avg:
+                    current_min_avg = grades_avg
+                    current_min_avg_count = iter_num * min_avg_count_percantage
+                elif current_min_avg_count == 0:
+                    print("Early convergence!")
+                    break
+                else:
+                    current_min_avg_count -= 1
 
                 # getting the indexes of the best boards(an amount by best_boards_num)
                 best_boards_indexes = sorted(range(len(grades)), key=lambda k: grades[k])[:best_boards_num]
@@ -425,6 +443,8 @@ if __name__ == '__main__':
             print("its grade:", population[grades.index(min(grades))][1])
             print("final avg:", grades_avg)
 
+            current_min_avg = 1
+            current_min_avg_count = int(iter_num * min_avg_count_percantage)
             print("The darvin algorithm running")
             # the main loop for the darvin algorithm
             for iter in range(iter_num):
@@ -432,6 +452,16 @@ if __name__ == '__main__':
                 darvin_avg = sum(darvin_grades) / len(darvin_grades)
                 current_darvin_best_board_grade = darvin_population[darvin_grades.index(min(darvin_grades))][1]
                 print("iter number:", iter, "best grade:", current_darvin_best_board_grade, "avg:", darvin_avg)
+
+                # checking for early convergence
+                if darvin_avg < current_min_avg:
+                    current_min_avg = darvin_avg
+                    current_min_avg_count = iter_num * min_avg_count_percantage
+                elif current_min_avg_count == 0:
+                    print("Early convergence!")
+                    break
+                else:
+                    current_min_avg_count -= 1
 
                 # getting the indexes of the best boards(an amount by best_boards_num)
                 best_darvin_boards_indexes = sorted(range(len(darvin_grades)), key=lambda k: darvin_grades[k])[
@@ -501,6 +531,8 @@ if __name__ == '__main__':
             print("its grade:", darvin_population[darvin_grades.index(min(darvin_grades))][1])
             print("final avg:", darvin_avg)
 
+            current_min_avg = 1
+            current_min_avg_count = int(iter_num * min_avg_count_percantage)
             print("The lemark algorithm running")
             # the main loop for the lemark algorithm
             for iter in range(iter_num):
@@ -508,6 +540,16 @@ if __name__ == '__main__':
                 lemark_avg = sum(lemark_grades) / len(lemark_grades)
                 current_lamark_best_board_grade = lemark_population[lemark_grades.index(min(lemark_grades))][1]
                 print("iter number:", iter, "best grade:", current_lamark_best_board_grade, "avg:", lemark_avg)
+
+                # checking for early convergence
+                if lemark_avg < current_min_avg:
+                    current_min_avg = lemark_avg
+                    current_min_avg_count = iter_num * min_avg_count_percantage
+                elif current_min_avg_count == 0:
+                    print("Early convergence!")
+                    break
+                else:
+                    current_min_avg_count -= 1
 
                 # getting the indexes of the best boards(an amount by best_boards_num)
                 best_lemark_boards_indexes = sorted(range(len(lemark_grades)), key=lambda k: lemark_grades[k])[
