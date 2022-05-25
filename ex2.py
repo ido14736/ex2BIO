@@ -341,7 +341,9 @@ if __name__ == '__main__':
                 lemark_population.append([optimized_board, optimized_board_grade])
                 lemark_grades.append(optimized_board_grade)
 
-            mutations_num = 450
+            mutations_percantage = 0.1
+            mutations_num = int(((population_size -2) * ((size*size) - len(given_numbers))) * mutations_percantage)
+
             # creating a list with the possible positions for mutations
             # includes all indexes instead of the given numbers indexes
             # and the indexes of the first two boards - will be the boards with the best grade
@@ -355,9 +357,10 @@ if __name__ == '__main__':
             # calculating the weights for the boards pair selection for the crossovers
             # we will be selecting the 50 best boards and in every crossover we will select two
             # the selection from the 50 boards will be weighted by the calculated weights
-            best_boards_num = 50
+            best_boards_percantage = 0.25
+            best_boards_num = int(population_size * best_boards_percantage)
             weights = []
-            r = list(range(51))
+            r = list(range(best_boards_num + 1))
             r.remove(0)
             s = sum(r)
             for i in r:
@@ -371,7 +374,7 @@ if __name__ == '__main__':
                 # calculating the current grades avg and getting the current grade of the best board
                 grades_avg = sum(grades)/len(grades)
                 current_best_board_grade = population[grades.index(min(grades))][1]
-                print("iter number:", iter, "best grade:", current_best_board_grade, "avd:", grades_avg)
+                print("iter number:", iter, "best grade:", current_best_board_grade, "avg:", grades_avg)
 
                 # getting the indexes of the best boards(an amount by best_boards_num)
                 best_boards_indexes = sorted(range(len(grades)), key=lambda k: grades[k])[:best_boards_num]
@@ -420,6 +423,7 @@ if __name__ == '__main__':
             print("the best board:")
             print_board(population[grades.index(min(grades))][0], greater_than_signs_positions, size)
             print("its grade:", population[grades.index(min(grades))][1])
+            print("final avg:", grades_avg)
 
             print("The darvin algorithm running")
             # the main loop for the darvin algorithm
@@ -427,7 +431,7 @@ if __name__ == '__main__':
                 # calculating the current grades avg and getting the current grade of the best board
                 darvin_avg = sum(darvin_grades) / len(darvin_grades)
                 current_darvin_best_board_grade = darvin_population[darvin_grades.index(min(darvin_grades))][1]
-                print("iter number:", iter, "best grade:", current_darvin_best_board_grade, "avd:", darvin_avg)
+                print("iter number:", iter, "best grade:", current_darvin_best_board_grade, "avg:", darvin_avg)
 
                 # getting the indexes of the best boards(an amount by best_boards_num)
                 best_darvin_boards_indexes = sorted(range(len(darvin_grades)), key=lambda k: darvin_grades[k])[
@@ -495,6 +499,7 @@ if __name__ == '__main__':
             print("the best board:")
             print_board(darvin_population[darvin_grades.index(min(darvin_grades))][0], greater_than_signs_positions, size)
             print("its grade:", darvin_population[darvin_grades.index(min(darvin_grades))][1])
+            print("final avg:", darvin_avg)
 
             print("The lemark algorithm running")
             # the main loop for the lemark algorithm
@@ -569,3 +574,4 @@ if __name__ == '__main__':
             print("the best board:")
             print_board(lemark_population[lemark_grades.index(min(lemark_grades))][0], greater_than_signs_positions, size)
             print("its grade:", lemark_population[lemark_grades.index(min(lemark_grades))][1])
+            print("final avg:", lemark_avg)
