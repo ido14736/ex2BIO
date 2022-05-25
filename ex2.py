@@ -368,24 +368,33 @@ if __name__ == '__main__':
             print("The original algorithm running")
             # the main loop for the original algorithm
             for iter in range(iter_num):
+                # calculating the current grades avg and getting the current grade of the best board
                 grades_avg = sum(grades)/len(grades)
                 current_best_board_grade = population[grades.index(min(grades))][1]
                 print("iter number:", iter, "best grade:", current_best_board_grade, "avd:", grades_avg)
 
+                # getting the indexes of the best boards(an amount by best_boards_num)
                 best_boards_indexes = sorted(range(len(grades)), key=lambda k: grades[k])[:best_boards_num]
 
+                # creating the next generation
+                # the best two boards are added as they are - elitism
                 next_generation_population = []
-
                 for i in range(2):
                     next_generation_population.append(population[best_boards_indexes[i]])
 
                 # CROSSOVERS
-                # generate 98 more boards by the best 50 boards in the current population
+                # the rest of the boards will be the result of a crossover
+                # selecting pairs for every crossover from the best boards, and the selection is weighted
+                # the weights calculated that the boards in the lower indexes = higher fitness
+                # will have a higher probability to be selected
                 for i in range(population_size - 2):
                     chosen_indexes = np.random.choice(best_boards_indexes,size=2,replace=False, p=weights)
                     next_generation_population.append(crossover(population[chosen_indexes[0]][0], population[chosen_indexes[1]][0], size))
 
                 # MUTATIONS
+                # selecting random positions from the possible_mutations_indexes that we calculated before
+                # the amount of the mutations will be by mutations_num
+                # for every selected position we will replace in the position with a different one
                 mutations_positions = random.sample(possible_mutations_indexes, mutations_num)
                 for mut in mutations_positions:
                     prev_value = next_generation_population[mut[0]][mut[1][0], mut[1][1]]
@@ -393,17 +402,20 @@ if __name__ == '__main__':
                     possible_new_values.remove(prev_value-1)
                     next_generation_population[mut[0]][mut[1][0], mut[1][1]] = random.choice(possible_new_values) + 1
 
-                #the first two will be the same
+                # setting the current generation as the next generation
+                # the first two boards are the best ones so they will be the same
                 for i in range(2):
                     population[i] = next_generation_population[i]
                     grades[i] = next_generation_population[i][1]
 
+                # for the rest of the boards - calculating it's fitness and updating the population
                 for i in range(population_size - 2):
                     current_board = next_generation_population[i+2]
                     current_board_grade = fitness_to_board(current_board, greater_than_signs_positions, greater_than_num, size)
                     population[i+2] = [current_board, current_board_grade]
                     grades[i+2] = current_board_grade
 
+            # printing the results
             print("The original algorithm done")
             print("the best board:")
             print_board(population[grades.index(min(grades))][0], greater_than_signs_positions, size)
@@ -412,20 +424,26 @@ if __name__ == '__main__':
             print("The darvin algorithm running")
             # the main loop for the darvin algorithm
             for iter in range(iter_num):
+                # calculating the current grades avg and getting the current grade of the best board
                 darvin_avg = sum(darvin_grades) / len(darvin_grades)
                 current_darvin_best_board_grade = darvin_population[darvin_grades.index(min(darvin_grades))][1]
                 print("iter number:", iter, "best grade:", current_darvin_best_board_grade, "avd:", darvin_avg)
 
+                # getting the indexes of the best boards(an amount by best_boards_num)
                 best_darvin_boards_indexes = sorted(range(len(darvin_grades)), key=lambda k: darvin_grades[k])[
                                              :best_boards_num]
 
+                # creating the next generation
+                # the best two boards are added as they are - elitism
                 next_generation_darvin_population = []
-
                 for i in range(2):
                     next_generation_darvin_population.append(darvin_population[best_darvin_boards_indexes[i]])
 
                 # CROSSOVERS
-                # generate 98 more boards by the best 50 boards in the current population
+                # the rest of the boards will be the result of a crossover
+                # selecting pairs for every crossover from the best boards, and the selection is weighted
+                # the weights calculated that the boards in the lower indexes = higher fitness
+                # will have a higher probability to be selected
                 for i in range(population_size - 2):
                     chosen_darvin_indexes = np.random.choice(best_darvin_boards_indexes, size=2, replace=False,
                                                              p=weights)
@@ -434,6 +452,9 @@ if __name__ == '__main__':
                                   darvin_population[chosen_darvin_indexes[1]][0], size))
 
                 # MUTATIONS
+                # selecting random positions from the possible_mutations_indexes that we calculated before
+                # the amount of the mutations will be by mutations_num
+                # for every selected position we will replace in the position with a different one
                 mutations_positions = random.sample(possible_mutations_indexes, mutations_num)
                 for mut in mutations_positions:
                     prev_darvin_value = next_generation_darvin_population[mut[0]][mut[1][0], mut[1][1]]
@@ -442,11 +463,13 @@ if __name__ == '__main__':
                     next_generation_darvin_population[mut[0]][mut[1][0], mut[1][1]] = random.choice(
                         possible_new_darvin_values) + 1
 
-                # the first two will be the same
+                # setting the current generation as the next generation
+                # the first two boards are the best ones so they will be the same
                 for i in range(2):
                     darvin_population[i] = next_generation_darvin_population[i]
                     darvin_grades[i] = next_generation_darvin_population[i][1]
 
+                # for the rest of the boards - calculating it's fitness and updating the population
                 for i in range(population_size - 2):
                     current_darvin_board = next_generation_darvin_population[i + 2]
                     current_darvin_board_grade = fitness_to_board(current_darvin_board,
@@ -455,6 +478,7 @@ if __name__ == '__main__':
                     darvin_population[i + 2] = [current_darvin_board, current_darvin_board_grade]
                     darvin_grades[i + 2] = current_darvin_board_grade
 
+                # optimizing every board and setting the original board and the optimized grade in the population
                 for i in range(len(population)):
                     source_board = darvin_population[i][0].copy()
                     darvin_optimized_board = optimize(darvin_population[i][0], darvin_population[i][1],
@@ -466,6 +490,7 @@ if __name__ == '__main__':
                     darvin_population[i] = [source_board, darvin_optimized_board_grade]
                     darvin_grades[i] = darvin_optimized_board_grade
 
+            # printing the results
             print("The darvin algorithm done")
             print("the best board:")
             print_board(darvin_population[darvin_grades.index(min(darvin_grades))][0], greater_than_signs_positions, size)
@@ -474,20 +499,26 @@ if __name__ == '__main__':
             print("The lemark algorithm running")
             # the main loop for the lemark algorithm
             for iter in range(iter_num):
+                # calculating the current grades avg and getting the current grade of the best board
                 lemark_avg = sum(lemark_grades) / len(lemark_grades)
                 current_lamark_best_board_grade = lemark_population[lemark_grades.index(min(lemark_grades))][1]
                 print("iter number:", iter, "best grade:", current_lamark_best_board_grade, "avg:", lemark_avg)
 
+                # getting the indexes of the best boards(an amount by best_boards_num)
                 best_lemark_boards_indexes = sorted(range(len(lemark_grades)), key=lambda k: lemark_grades[k])[
                                              :best_boards_num]
 
+                # creating the next generation
+                # the best two boards are added as they are - elitism
                 next_generation_lemark_population = []
-
                 for i in range(2):
                     next_generation_lemark_population.append(lemark_population[best_lemark_boards_indexes[i]])
 
                 # CROSSOVERS
-                # generate 98 more boards by the best 50 boards in the current population
+                # the rest of the boards will be the result of a crossover
+                # selecting pairs for every crossover from the best boards, and the selection is weighted
+                # the weights calculated that the boards in the lower indexes = higher fitness
+                # will have a higher probability to be selected
                 for i in range(population_size - 2):
                     chosen_lemark_indexes = np.random.choice(best_lemark_boards_indexes, size=2, replace=False,
                                                              p=weights)
@@ -496,6 +527,9 @@ if __name__ == '__main__':
                                   lemark_population[chosen_lemark_indexes[1]][0], size))
 
                 # MUTATIONS
+                # selecting random positions from the possible_mutations_indexes that we calculated before
+                # the amount of the mutations will be by mutations_num
+                # for every selected position we will replace in the position with a different one
                 mutations_positions = random.sample(possible_mutations_indexes, mutations_num)
                 for mut in mutations_positions:
                     prev_lemark_value = next_generation_lemark_population[mut[0]][mut[1][0], mut[1][1]]
@@ -504,11 +538,13 @@ if __name__ == '__main__':
                     next_generation_lemark_population[mut[0]][mut[1][0], mut[1][1]] = random.choice(
                         possible_new_lemark_values) + 1
 
-                # the first two will be the same
+                # setting the current generation as the next generation
+                # the first two boards are the best ones so they will be the same
                 for i in range(2):
                     lemark_population[i] = next_generation_lemark_population[i]
                     lemark_grades[i] = next_generation_lemark_population[i][1]
 
+                # for the rest of the boards - calculating it's fitness and updating the population
                 for i in range(population_size - 2):
                     current_lemark_board = next_generation_lemark_population[i + 2]
                     current_lemark_board_grade = fitness_to_board(current_lemark_board,
@@ -517,6 +553,7 @@ if __name__ == '__main__':
                     lemark_population[i + 2] = [current_lemark_board, current_lemark_board_grade]
                     lemark_grades[i + 2] = current_lemark_board_grade
 
+                # optimizing every board and setting the optimized board and the optimized grade in the population
                 for i in range(len(population)):
                     lemark_optimized_board = optimize(lemark_population[i][0], lemark_population[i][1],
                                                       given_numbers_positions, greater_than_signs_positions,
@@ -527,6 +564,7 @@ if __name__ == '__main__':
                     lemark_population[i] = [lemark_optimized_board, lemark_optimized_board_grade]
                     lemark_grades[i] = lemark_optimized_board_grade
 
+            # printing the results
             print("The lemark algorithm done")
             print("the best board:")
             print_board(lemark_population[lemark_grades.index(min(lemark_grades))][0], greater_than_signs_positions, size)
